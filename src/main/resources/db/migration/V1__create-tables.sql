@@ -17,7 +17,6 @@ CREATE TABLE empresa (
     operadora VARCHAR(150) NOT NULL,
     dt_aniversario DATE NOT NULL,
     porte ENUM('PME','PJ') NOT NULL,
-    mensalidade_atual DECIMAL(15,2) NOT NULL,
     status_renovacao ENUM('EM_NEGOCIACAO','REAJUSTADO','PENDENTE','EM_ATRASO'),
     id_analista INT NOT NULL,
     FOREIGN KEY (id_analista) REFERENCES analista(id_analista)

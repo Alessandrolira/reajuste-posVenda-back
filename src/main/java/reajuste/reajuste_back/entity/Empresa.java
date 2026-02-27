@@ -31,6 +31,8 @@ public class Empresa {
     @Column(name = "dt_aniversario")
     private LocalDate dtAniversario;
 
+    @Column(name = "porte")
+    @Enumerated(EnumType.STRING)
     private EnumPorte porte;
 
     @Column(name = "status_renovacao")
@@ -39,5 +41,9 @@ public class Empresa {
 
     @OneToMany(mappedBy = "empresa")
     private List<Reajuste> reajustes;
+
+    @OneToOne
+    @JoinColumn(name = "id_analista")
+    private Analista idAnalista;
 
 }

@@ -2,12 +2,10 @@ package reajuste.reajuste_back.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import reajuste.reajuste_back.dtos.empresas.DadosGeraisDTO;
+import org.springframework.web.bind.annotation.*;
+import reajuste.reajuste_back.dtos.empresas.CriarEmpresaDTO;
 import reajuste.reajuste_back.service.EmpresaService;
 
 @RestController
@@ -17,12 +15,16 @@ public class EmpresasController {
 
     private final EmpresaService empresaService;
 
-    @GetMapping("/dadosGerais")
-    public ResponseEntity<DadosGeraisDTO> buscarDadosGerais(){
+    @PostMapping
+    public ResponseEntity<String> create(@Valid @RequestBody CriarEmpresaDTO body) throws Exception {
 
-        Long totalEmpresas = empresaService.buscarTotalEmpresas();
-        Long economiaTotal = empresaService.valorEconomiaGeral();
+        Boolean empresaCriada = empresaService.criarEmpresa(body);
 
+        if (empresaCriada) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Empresa criada com sucesso");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao cadastrar a empresa");
+        }
 
 
     }
