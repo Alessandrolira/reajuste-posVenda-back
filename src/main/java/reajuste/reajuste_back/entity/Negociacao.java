@@ -35,7 +35,7 @@ public class Negociacao {
     @Column(name = "dt_fim")
     private LocalDate dtFim;
 
-    @Column(name = "motivo_encerramento")
+    @Lob
     private String motivoEncerramento;
 
     @OneToMany(
@@ -56,6 +56,9 @@ public class Negociacao {
 
     @Column(name = "valor_final")
     private BigDecimal valorFinal;
+
+    @Column(name = "valor_com_primeira_porcentagem")
+    private BigDecimal valorComPrimeiraPorcentagem;
 
 
 }

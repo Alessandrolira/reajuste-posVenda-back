@@ -57,7 +57,7 @@ CREATE TABLE negociacao (
     status ENUM('EM_ANDAMENTO','FINALIZADA','CANCELADA') DEFAULT 'EM_ANDAMENTO',
     dt_inicio DATE NOT NULL,
     dt_fim DATE,
-    motivo_encerramento VARCHAR(255),
+    motivo_encerramento TEXT,
 
     FOREIGN KEY (id_reajuste) REFERENCES reajuste(id_reajuste)
 );

@@ -90,6 +90,14 @@ public class InteracaoService {
             interacao.setAceita(true);
             interacaoRepository.save(interacao);
             negociacao.setStatus(EnumStatusNegociacao.INTERACAO_ACEITA);
+            negociacao.setDtFim(body.dataAceite());
+            negociacao.setMotivoEncerramento(body.motivoEncerramento());
+
+            BigDecimal ultimoValorAceitado = reajusteService.calcularReajuste(negociacao.getReajuste().getValorUltimaFatura() ,interacao.getPorcentagemProposta());
+            negociacao.setPorcentagemFechada(interacao.getPorcentagemProposta());
+            negociacao.setValorFinal(ultimoValorAceitado);
+            negociacao.setValorComPrimeiraPorcentagem(negociacao.getReajuste().getVlComPrimeiraPorcentagem());
+
             negociacaoRepository.save(negociacao);
         }
 
