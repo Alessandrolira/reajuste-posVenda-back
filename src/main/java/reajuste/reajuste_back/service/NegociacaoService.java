@@ -1,0 +1,39 @@
+package reajuste.reajuste_back.service;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import org.springframework.stereotype.Service;
+import reajuste.reajuste_back.entity.Empresa;
+import reajuste.reajuste_back.entity.Negociacao;
+import reajuste.reajuste_back.entity.Reajuste;
+import reajuste.reajuste_back.enums.negociacao.EnumStatusNegociacao;
+import reajuste.reajuste_back.repository.NegociacaoRepository;
+
+import java.time.LocalDate;
+
+@Service
+@AllArgsConstructor
+public class NegociacaoService {
+
+    private final NegociacaoRepository negociacaoRepository;
+
+    public Boolean criarNegociacao(Reajuste reajuste) {
+
+        try {
+            Negociacao negociacao = new Negociacao();
+
+            negociacao.setReajuste(reajuste);
+            negociacao.setStatus(EnumStatusNegociacao.EM_ANDAMENTO);
+            negociacao.setDtInicio(LocalDate.now());
+
+            negociacaoRepository.save(negociacao);
+
+            return true;
+
+        } catch (Exception e){
+            throw new RuntimeException("Erro ao criar a negociacao");
+        }
+
+
+    }
+}

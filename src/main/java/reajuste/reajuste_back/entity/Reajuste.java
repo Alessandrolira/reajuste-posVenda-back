@@ -25,11 +25,8 @@ public class Reajuste {
     @JoinColumn(name = "id_empresa")
     private Empresa empresa;
 
-    @Column(name = "ano_referencia")
-    private LocalDate anoReferencia;
-
-    @Enumerated(EnumType.STRING)
-    private EnumStatusReajuste status;
+    @Column(name = "ano_referencia", nullable = false)
+    private Integer anoReferencia;
 
     @Column(name = "vl_ultima_fatura")
     private BigDecimal valorUltimaFatura;

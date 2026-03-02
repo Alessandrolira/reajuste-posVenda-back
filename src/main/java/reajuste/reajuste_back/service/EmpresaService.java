@@ -11,6 +11,7 @@ import reajuste.reajuste_back.entity.Empresa;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
 import reajuste.reajuste_back.repository.AnalistaRepository;
 import reajuste.reajuste_back.repository.EmpresaRepository;
+import reajuste.reajuste_back.repository.ReajusteRepository;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -58,7 +59,6 @@ public class EmpresaService {
         // Cria aniversário no ano atual
         LocalDate aniversarioEsteAno = aniversarioOriginal.withYear(hoje.getYear());
 
-        // Se já passou, considera o próximo ano
         if (aniversarioEsteAno.isBefore(hoje)) {
             aniversarioEsteAno = aniversarioEsteAno.plusYears(1);
         }
