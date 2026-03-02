@@ -49,15 +49,7 @@ public class ReajusteService {
 
         empresaEncontrada.setStatusRenovacao(EnumStatusRenovacao.EM_NEGOCIACAO);
 
-
-
-        Boolean criouNegociacao = negociacaoService.criarNegociacao(reajuste);
-
-        if (criouNegociacao) {
-            empresaRepository.save(empresaEncontrada);
-        } else {
-            throw new RuntimeException("Erro ao criar a negociação");
-        }
+        empresaRepository.save(empresaEncontrada);
 
         return ReajusteResponseDTO.builder()
                 .idReajuste(objetoReajuste.getIdReajuste())
@@ -71,7 +63,7 @@ public class ReajusteService {
 
     }
 
-    private BigDecimal calcularReajuste(@NotBlank BigDecimal valorFatura, @NotNull BigDecimal porcentagem) {
+    public BigDecimal calcularReajuste(@NotBlank BigDecimal valorFatura, @NotNull BigDecimal porcentagem) {
 
         return valorFatura
                 .multiply(

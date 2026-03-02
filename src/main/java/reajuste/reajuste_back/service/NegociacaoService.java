@@ -3,6 +3,7 @@ package reajuste.reajuste_back.service;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.springframework.stereotype.Service;
+import reajuste.reajuste_back.dtos.negociacao.NegociacaoResponseDTO;
 import reajuste.reajuste_back.entity.Empresa;
 import reajuste.reajuste_back.entity.Negociacao;
 import reajuste.reajuste_back.entity.Reajuste;
@@ -17,7 +18,7 @@ public class NegociacaoService {
 
     private final NegociacaoRepository negociacaoRepository;
 
-    public Boolean criarNegociacao(Reajuste reajuste) {
+    public Negociacao criarNegociacao(Reajuste reajuste) {
 
         try {
             Negociacao negociacao = new Negociacao();
@@ -25,10 +26,10 @@ public class NegociacaoService {
             negociacao.setReajuste(reajuste);
             negociacao.setStatus(EnumStatusNegociacao.EM_ANDAMENTO);
             negociacao.setDtInicio(LocalDate.now());
+            negociacao.setValorInicial(reajuste.getValorUltimaFatura());
+            negociacao.setPorcentagemPropostaOperadora(reajuste.getPorcentagemOperadora());
 
-            negociacaoRepository.save(negociacao);
-
-            return true;
+            return negociacaoRepository.save(negociacao);
 
         } catch (Exception e){
             throw new RuntimeException("Erro ao criar a negociacao");

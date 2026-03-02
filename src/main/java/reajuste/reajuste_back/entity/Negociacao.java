@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import reajuste.reajuste_back.enums.negociacao.EnumStatusNegociacao;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -43,6 +44,18 @@ public class Negociacao {
             orphanRemoval = true
     )
     private List<Interacao> interacoes;
+
+    @Column(name = "valor_inicial")
+    private BigDecimal valorInicial;
+
+    @Column(name = "porcentagem_operadora")
+    private BigDecimal porcentagemPropostaOperadora;
+
+    @Column(name = "porcentagem_fechada")
+    private BigDecimal porcentagemFechada;
+
+    @Column(name = "valor_final")
+    private BigDecimal valorFinal;
 
 
 }
