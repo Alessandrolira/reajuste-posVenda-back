@@ -43,13 +43,13 @@ public class EmpresaService {
 
             EnumStatusRenovacao statusRenovacao = verificarStatusRenovacao(body.aniversario());
 
-
             Empresa empresa = new Empresa();
 
             empresa.setNome(body.nomeEmpresa());
             empresa.setStatusContrato(body.statusContrato());
             empresa.setOperadora(body.operadora());
             empresa.setDtAniversario(body.aniversario());
+            empresa.setModalidade(body.modalidade());
             empresa.setPorte(body.porte());
             empresa.setStatusRenovacao(statusRenovacao);
             empresa.setIdAnalista(analistaEncontrado);
@@ -169,7 +169,7 @@ public class EmpresaService {
                         .statusRenovacao(empresa.getStatusRenovacao())
                         .aniversario(empresa.getDtAniversario())
                         .ultimoReajuste(0)
-                        .econmiaTotal(BigDecimal.valueOf(0))
+                        .economiaTotal(BigDecimal.valueOf(0))
                         .porcentagemUltimoReajuste(BigDecimal.valueOf(0))
                         .build();
 
@@ -180,7 +180,6 @@ public class EmpresaService {
 
             Reajuste ultimoReajuste = reajusteService.buscarUltimoReajuste(empresa);
             Negociacao ultimaNegociacao = negociacaoService.buscarUltimaNegociacao(ultimoReajuste);
-            Empresa empresaUltimoReajuste = ultimoReajuste.getEmpresa();
 
             CardsEmpresaDTO card = CardsEmpresaDTO.builder()
                     .idEmpresa(empresa.getIdEmpresa())
@@ -190,7 +189,7 @@ public class EmpresaService {
                     .statusRenovacao(empresa.getStatusRenovacao())
                     .aniversario(empresa.getDtAniversario())
                     .ultimoReajuste(ultimoReajuste.getAnoReferencia())
-                    .econmiaTotal(BigDecimal.valueOf(ultimaNegociacao.getValorComPrimeiraPorcentagem().doubleValue() - ultimaNegociacao.getValorFinal().doubleValue()))
+                    .economiaTotal(BigDecimal.valueOf(ultimaNegociacao.getValorComPrimeiraPorcentagem().doubleValue() - ultimaNegociacao.getValorFinal().doubleValue()))
                     .porcentagemUltimoReajuste(ultimaNegociacao.getPorcentagemFechada())
                     .build();
 

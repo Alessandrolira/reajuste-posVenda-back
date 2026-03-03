@@ -18,7 +18,7 @@ public record CardsEmpresaDTO(
         EnumStatusRenovacao statusRenovacao,
         LocalDate aniversario,
         int ultimoReajuste,
-        BigDecimal econmiaTotal,
+        BigDecimal economiaTotal,
         BigDecimal porcentagemUltimoReajuste
 
 ) {
