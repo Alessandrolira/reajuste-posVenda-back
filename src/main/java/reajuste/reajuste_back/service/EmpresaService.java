@@ -72,4 +72,9 @@ public class EmpresaService {
         }
     }
 
+    public Long totalEmpresas() {
+
+        return empresaRepository.count();
+
+    }
 }

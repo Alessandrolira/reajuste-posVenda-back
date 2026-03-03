@@ -26,6 +26,14 @@ public class EmpresasController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao cadastrar a empresa");
         }
 
+    }
+
+    @GetMapping("/totalEmpresas")
+    public ResponseEntity<Long> totalEmpresas() {
+
+        Long totalEmpresas = empresaService.totalEmpresas();
+
+        return ResponseEntity.ok(totalEmpresas);
 
     }
 
