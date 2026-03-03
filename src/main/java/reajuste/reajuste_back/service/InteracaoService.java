@@ -3,24 +3,20 @@ package reajuste.reajuste_back.service;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 import reajuste.reajuste_back.dtos.interacao.RequestInteracaoAprovadaDTO;
 import reajuste.reajuste_back.dtos.interacao.RequestInteracaoDTO;
 import reajuste.reajuste_back.dtos.interacao.ResponseInteracaoDTO;
-import reajuste.reajuste_back.dtos.negociacao.NegociacaoResponseDTO;
 import reajuste.reajuste_back.entity.Empresa;
 import reajuste.reajuste_back.entity.Interacao;
 import reajuste.reajuste_back.entity.Negociacao;
 import reajuste.reajuste_back.entity.Reajuste;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
 import reajuste.reajuste_back.enums.negociacao.EnumStatusNegociacao;
-import reajuste.reajuste_back.repository.EmpresaRepository;
 import reajuste.reajuste_back.repository.InteracaoRepository;
 import reajuste.reajuste_back.repository.NegociacaoRepository;
 import reajuste.reajuste_back.repository.ReajusteRepository;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

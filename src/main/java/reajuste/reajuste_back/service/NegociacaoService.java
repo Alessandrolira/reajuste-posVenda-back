@@ -59,6 +59,11 @@ public class NegociacaoService {
                 .idNegociacao(negociacao.getIdNegociacao())
                 .build();
 
+    }
+
+    public Negociacao buscarUltimaNegociacao(Reajuste ultimoReajuste) {
+
+        return negociacaoRepository.findByReajuste_IdReajuste(ultimoReajuste.getIdReajuste());
 
     }
 }

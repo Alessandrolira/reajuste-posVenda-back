@@ -35,6 +35,10 @@ public class Empresa {
     @Enumerated(EnumType.STRING)
     private EnumPorte porte;
 
+    @Column(name = "modalidade")
+    @Enumerated(EnumType.STRING)
+    private EnumModalidade modalidade;
+
     @Column(name = "status_renovacao")
     @Enumerated(EnumType.STRING)
     private EnumStatusRenovacao statusRenovacao;

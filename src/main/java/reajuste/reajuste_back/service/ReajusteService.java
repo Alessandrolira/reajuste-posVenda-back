@@ -17,6 +17,7 @@ import reajuste.reajuste_back.repository.ReajusteRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -73,6 +74,15 @@ public class ReajusteService {
                         )
                 )
                 .setScale(2, RoundingMode.HALF_UP);
+
+    }
+
+    public Reajuste buscarUltimoReajuste(Empresa empresa) {
+
+        return reajusteRepository
+                .findTopByEmpresaOrderByAnoReferenciaDesc(empresa);
+
+
 
     }
 }

@@ -5,8 +5,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reajuste.reajuste_back.dtos.empresas.CardsEmpresaDTO;
 import reajuste.reajuste_back.dtos.empresas.CriarEmpresaDTO;
+import reajuste.reajuste_back.dtos.empresas.EmpresaMelhorNegociacaoDTO;
+import reajuste.reajuste_back.dtos.empresas.EmpresaResponseDTO;
 import reajuste.reajuste_back.service.EmpresaService;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/empresas")
@@ -34,6 +40,45 @@ public class EmpresasController {
         Long totalEmpresas = empresaService.totalEmpresas();
 
         return ResponseEntity.ok(totalEmpresas);
+
+    }
+
+    @GetMapping("/economiaTotal")
+    public ResponseEntity<BigDecimal> economiaTotal() {
+
+        BigDecimal economiaTotal = empresaService.economiaTotal();
+
+        return ResponseEntity.ok(economiaTotal);
+
+    }
+
+    @GetMapping("/mediaReducao")
+    public ResponseEntity<BigDecimal> mediaReducao() {
+
+        BigDecimal mediaReducao = empresaService.mediaReducao();
+
+        return ResponseEntity.ok(mediaReducao);
+
+    }
+
+    @GetMapping("/melhorNegociacao")
+    public ResponseEntity<EmpresaMelhorNegociacaoDTO> melhorNegociacao() {
+
+        EmpresaMelhorNegociacaoDTO empresaMelhorNegociacao = empresaService.encontrarMelhorNegociacao();
+
+        if(empresaMelhorNegociacao.valorEconomizado() < 0){
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        } else {
+            return ResponseEntity.ok(empresaMelhorNegociacao);
+        }
+    }
+
+    @GetMapping("/buscarCardsEmpresa")
+    public ResponseEntity<List<CardsEmpresaDTO>> buscarCardsEmpresa(){
+
+        List<CardsEmpresaDTO> cardsEmpresas = empresaService.gerarCardsEmpresas();
+
+        return ResponseEntity.ok(cardsEmpresas);
 
     }
 
