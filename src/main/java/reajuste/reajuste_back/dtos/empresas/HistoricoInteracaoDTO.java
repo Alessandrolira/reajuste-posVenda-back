@@ -1,5 +1,6 @@
 package reajuste.reajuste_back.dtos.empresas;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import reajuste.reajuste_back.enums.interacao.EnumTipoInteracao;
 
@@ -15,6 +16,8 @@ public record HistoricoInteracaoDTO(
         BigDecimal porcentagemProposta,
         BigDecimal valorAtual,
         BigDecimal vlMensalResultante,
+
+        @JsonFormat(pattern = "dd-MM-yyyy")
         LocalDate dtInteracao,
         String observacao,
         Boolean isAceita
