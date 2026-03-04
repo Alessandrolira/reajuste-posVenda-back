@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import reajuste.reajuste_back.dtos.reajuste.ReajusteCreateDTO;
 import reajuste.reajuste_back.dtos.reajuste.ReajusteResponseDTO;
 import reajuste.reajuste_back.entity.Empresa;
+import reajuste.reajuste_back.entity.Negociacao;
 import reajuste.reajuste_back.entity.Reajuste;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
 import reajuste.reajuste_back.enums.reajuste.EnumStatusReajuste;
@@ -79,10 +80,37 @@ public class ReajusteService {
 
     public Reajuste buscarUltimoReajuste(Empresa empresa) {
 
-        return reajusteRepository
-                .findTopByEmpresaOrderByAnoReferenciaDesc(empresa);
+        if (reajusteRepository
+                .findTopByEmpresaOrderByAnoReferenciaDesc(empresa) == null){
+            return null;
+        } else {
+            return reajusteRepository
+                    .findTopByEmpresaOrderByAnoReferenciaDesc(empresa);
+        }
 
 
+
+
+    }
+
+    public BigDecimal calcularEconomiaReal(Negociacao negociacao, Reajuste reajuste) {
+
+        return BigDecimal.valueOf(
+                calcularReajuste(
+                        reajuste.getValorUltimaFatura(),
+                        negociacao.getPorcentagemPropostaOperadora()
+                ).doubleValue() -  calcularReajuste(
+                        reajuste.getValorUltimaFatura(),
+                        negociacao.getPorcentagemFechada()
+                ).doubleValue());
+
+    }
+
+    public BigDecimal calcularDiferencaPercentual(Negociacao negociacao) {
+
+        return BigDecimal.valueOf(
+                negociacao.getPorcentagemPropostaOperadora().doubleValue()
+                        - negociacao.getPorcentagemFechada().doubleValue());
 
     }
 }

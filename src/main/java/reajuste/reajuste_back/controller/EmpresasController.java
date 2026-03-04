@@ -1,14 +1,12 @@
 package reajuste.reajuste_back.controller;
 
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reajuste.reajuste_back.dtos.empresas.CardsEmpresaDTO;
-import reajuste.reajuste_back.dtos.empresas.CriarEmpresaDTO;
-import reajuste.reajuste_back.dtos.empresas.EmpresaMelhorNegociacaoDTO;
-import reajuste.reajuste_back.dtos.empresas.EmpresaResponseDTO;
+import reajuste.reajuste_back.dtos.empresas.*;
 import reajuste.reajuste_back.service.EmpresaService;
 
 import java.math.BigDecimal;
@@ -80,6 +78,14 @@ public class EmpresasController {
 
         return ResponseEntity.ok(cardsEmpresas);
 
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EmpresaDTO> buscarEmpresa(@PathVariable Integer id){
+
+        EmpresaDTO response = empresaService.buscarEmpresa(id);
+
+        return ResponseEntity.ok(response);
     }
 
 

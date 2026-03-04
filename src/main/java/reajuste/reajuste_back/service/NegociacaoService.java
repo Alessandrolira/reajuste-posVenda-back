@@ -63,7 +63,13 @@ public class NegociacaoService {
 
     public Negociacao buscarUltimaNegociacao(Reajuste ultimoReajuste) {
 
-        return negociacaoRepository.findByReajuste_IdReajuste(ultimoReajuste.getIdReajuste());
+        if (negociacaoRepository.findByReajuste_IdReajuste(ultimoReajuste.getIdReajuste()) == null){
+            return null;
+        } else {
+            return negociacaoRepository.findByReajuste_IdReajuste(ultimoReajuste.getIdReajuste());
+        }
+
+
 
     }
 }

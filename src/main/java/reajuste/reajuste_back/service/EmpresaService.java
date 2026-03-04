@@ -5,14 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
-import reajuste.reajuste_back.dtos.empresas.CardsEmpresaDTO;
-import reajuste.reajuste_back.dtos.empresas.CriarEmpresaDTO;
-import reajuste.reajuste_back.dtos.empresas.EmpresaMelhorNegociacaoDTO;
-import reajuste.reajuste_back.dtos.empresas.EmpresaResponseDTO;
-import reajuste.reajuste_back.entity.Analista;
-import reajuste.reajuste_back.entity.Empresa;
-import reajuste.reajuste_back.entity.Negociacao;
-import reajuste.reajuste_back.entity.Reajuste;
+import reajuste.reajuste_back.dtos.empresas.*;
+import reajuste.reajuste_back.entity.*;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
 import reajuste.reajuste_back.repository.AnalistaRepository;
 import reajuste.reajuste_back.repository.EmpresaRepository;
@@ -34,6 +28,8 @@ public class EmpresaService {
     private final NegociacaoRepository negociacaoRepository;
     private final ReajusteService reajusteService;
     private final NegociacaoService negociacaoService;
+    private final InteracaoService interacaoService;
+    private final ReajusteRepository reajusteRepository;
 
     public Boolean criarEmpresa(@Valid CriarEmpresaDTO body) throws Exception {
 
@@ -198,6 +194,78 @@ public class EmpresaService {
         }
 
         return empresasBuscadas;
+
+    }
+
+    public EmpresaDTO buscarEmpresa(Integer id) {
+
+        Empresa empresa = empresaRepository.findById(id).orElseThrow();
+
+        Reajuste ultimoReajuste = null;
+        Negociacao ultimaNegociacao = null;
+        BigDecimal reajusteReal = BigDecimal.valueOf(0);
+        BigDecimal diferencaPercentual = BigDecimal.valueOf(0);
+        BigDecimal ultimaNegociacaoPorcentagemOperadora = BigDecimal.valueOf(0);
+        BigDecimal ultimaNegociacaoPorcentagemFechada = BigDecimal.valueOf(0);
+        BigDecimal valorUltimaFatura = BigDecimal.valueOf(0);
+        BigDecimal ultimaNegociacaoValorFechado = BigDecimal.valueOf(0);
+
+        if (reajusteRepository.existsByEmpresa(empresa)){
+            ultimoReajuste = reajusteService.buscarUltimoReajuste(empresa);
+            if (negociacaoRepository.existsByReajuste(ultimoReajuste)){
+                ultimaNegociacao = negociacaoService.buscarUltimaNegociacao(ultimoReajuste);
+                reajusteReal = reajusteService.calcularEconomiaReal(ultimaNegociacao, ultimoReajuste);
+                diferencaPercentual = reajusteService.calcularDiferencaPercentual(ultimaNegociacao);
+                ultimaNegociacaoPorcentagemOperadora = ultimaNegociacao.getPorcentagemPropostaOperadora();
+                ultimaNegociacaoPorcentagemFechada = ultimaNegociacao.getPorcentagemFechada();
+                valorUltimaFatura = ultimoReajuste.getValorUltimaFatura();
+                ultimaNegociacaoValorFechado = ultimaNegociacao.getValorFinal();
+            }
+        }
+
+        List<Negociacao> negociacoes = new ArrayList<>();;
+        if(!negociacaoRepository.findByReajusteEmpresa(empresa).isEmpty()){
+            negociacoes = negociacaoRepository.findByReajusteEmpresa(empresa);
+        }
+
+
+        List<PorcentagensFinaisIniciaisDTO> porcentagensFinaisIniciais = new ArrayList<>();
+        List<LinhaTempoDTO> linhaTempoCompleta = new ArrayList<>();
+
+        for (Negociacao negociacao : negociacoes){
+
+            PorcentagensFinaisIniciaisDTO porcentagemInicialFinal = PorcentagensFinaisIniciaisDTO.builder()
+                    .operadora(negociacao.getPorcentagemPropostaOperadora())
+                    .corretora(negociacao.getPorcentagemFechada())
+                    .motivoEncerramento(negociacao.getMotivoEncerramento())
+                    .build();
+
+            porcentagensFinaisIniciais.add(porcentagemInicialFinal);
+
+            LinhaTempoDTO linhaTempo = LinhaTempoDTO.builder()
+                    .ano(negociacao.getReajuste().getAnoReferencia())
+                    .economiaPorcentagem(BigDecimal.valueOf(negociacao.getPorcentagemPropostaOperadora().doubleValue() - negociacao.getPorcentagemFechada().doubleValue()))
+                    .porcentagemFechada(negociacao.getPorcentagemFechada())
+                    .build();
+
+            linhaTempoCompleta.add(linhaTempo);
+        }
+
+        List<HistoricoInteracaoDTO> historicoInteracao = interacaoService.buscarInteracoes(empresa);
+
+        return EmpresaDTO.builder()
+                .nomeEmpresa(empresa.getNome())
+                .statusRenovacao(empresa.getStatusRenovacao())
+                .ultimoReajusteOferecido(ultimaNegociacaoPorcentagemOperadora)
+                .ultimoReajusteFechado(ultimaNegociacaoPorcentagemFechada)
+                .economiaPercentual(diferencaPercentual)
+                .economiaReal(reajusteReal)
+                .valorUltimaFatura(valorUltimaFatura)
+                .valorFechado(ultimaNegociacaoValorFechado)
+                .porcentagensFinaisIniciais(porcentagensFinaisIniciais)
+                .linhaTempo(linhaTempoCompleta)
+                .historicoInteracao(historicoInteracao)
+                .build();
 
     }
 }
