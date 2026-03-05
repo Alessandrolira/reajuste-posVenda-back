@@ -4,6 +4,7 @@ import lombok.Builder;
 import reajuste.reajuste_back.enums.empresa.EnumModalidade;
 import reajuste.reajuste_back.enums.empresa.EnumOperadora;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
+import reajuste.reajuste_back.enums.negociacao.EnumStatusNegociacao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ public record CardsEmpresaDTO(
         EnumOperadora operadora,
         EnumModalidade modalidade,
         EnumStatusRenovacao statusRenovacao,
+        EnumStatusNegociacao statusNegociacao,
         LocalDate aniversario,
         int ultimoReajuste,
         BigDecimal economiaTotal,

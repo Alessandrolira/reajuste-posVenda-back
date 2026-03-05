@@ -43,4 +43,7 @@ public class Reajuste {
     @OneToMany(mappedBy = "reajuste", cascade = CascadeType.ALL)
     private List<Documentos> documentos;
 
+    @OneToOne(mappedBy = "reajuste")
+    private Negociacao negociacao;
+
 }

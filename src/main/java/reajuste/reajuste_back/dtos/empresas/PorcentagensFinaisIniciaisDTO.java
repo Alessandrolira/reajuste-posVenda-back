@@ -9,7 +9,7 @@ public record PorcentagensFinaisIniciaisDTO(
 
         BigDecimal operadora,
         BigDecimal corretora,
-        String motivoEncerramento
+        Integer ano
 
 ) {
 }

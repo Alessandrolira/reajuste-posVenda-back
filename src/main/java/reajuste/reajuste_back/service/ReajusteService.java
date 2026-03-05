@@ -5,19 +5,24 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import reajuste.reajuste_back.dtos.empresas.HistoricoInteracaoDTO;
 import reajuste.reajuste_back.dtos.reajuste.ReajusteCreateDTO;
 import reajuste.reajuste_back.dtos.reajuste.ReajusteResponseDTO;
+import reajuste.reajuste_back.dtos.reajuste.UltimoReajusteDTO;
 import reajuste.reajuste_back.entity.Empresa;
+import reajuste.reajuste_back.entity.Interacao;
 import reajuste.reajuste_back.entity.Negociacao;
 import reajuste.reajuste_back.entity.Reajuste;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
-import reajuste.reajuste_back.enums.reajuste.EnumStatusReajuste;
+import reajuste.reajuste_back.enums.negociacao.EnumStatusNegociacao;
 import reajuste.reajuste_back.repository.EmpresaRepository;
+import reajuste.reajuste_back.repository.InteracaoRepository;
+import reajuste.reajuste_back.repository.NegociacaoRepository;
 import reajuste.reajuste_back.repository.ReajusteRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,6 +32,8 @@ public class ReajusteService {
     private final ReajusteRepository reajusteRepository;
     private final EmpresaRepository empresaRepository;
     private final NegociacaoService negociacaoService;
+    private final NegociacaoRepository negociacaoRepository;
+    private final InteracaoRepository interacaoRepository;
 
     public ReajusteResponseDTO criarReajuste(@Valid ReajusteCreateDTO body) throws Exception {
 
@@ -48,6 +55,8 @@ public class ReajusteService {
         reajuste.setDtEnvio(body.dataEnvioProposta());
 
         Reajuste objetoReajuste = reajusteRepository.save(reajuste);
+
+        negociacaoService.criarNegociacao(objetoReajuste);
 
         empresaEncontrada.setStatusRenovacao(EnumStatusRenovacao.EM_NEGOCIACAO);
 
@@ -78,22 +87,40 @@ public class ReajusteService {
 
     }
 
-    public Reajuste buscarUltimoReajuste(Empresa empresa) {
+    public UltimoReajusteDTO buscarUltimoReajusteAprovado(Integer idEmpresa) {
 
-        if (reajusteRepository
-                .findTopByEmpresaOrderByAnoReferenciaDesc(empresa) == null){
+
+        Empresa empresa = empresaRepository.findById(idEmpresa).orElseThrow();
+
+        Reajuste reajuste = reajusteRepository.findTopByEmpresaAndNegociacaoStatusOrderByAnoReferenciaDesc(empresa, EnumStatusNegociacao.FINALIZADA);
+
+        if (reajuste == null){
             return null;
-        } else {
-            return reajusteRepository
-                    .findTopByEmpresaOrderByAnoReferenciaDesc(empresa);
         }
 
+        Negociacao negociacaoVinculada = negociacaoRepository.findAllByReajuste(reajuste);
 
-
+        return UltimoReajusteDTO.builder()
+                .idReajuste(reajuste.getIdReajuste())
+                .statusNegociacao(negociacaoVinculada.getStatus())
+                .anoUltimoReajuste(reajuste.getAnoReferencia())
+                .porcentagemOferecida(negociacaoVinculada.getPorcentagemPropostaOperadora())
+                .porcentagemFechada(negociacaoVinculada.getPorcentagemFechada())
+                .economiaPercentual(calcularDiferencaPercentual(negociacaoVinculada))
+                .economiaReal(calcularEconomiaReal(negociacaoVinculada, reajuste))
+                .valorPrimeiraFatura(negociacaoVinculada.getValorInicial())
+                .mediaReducao(negociacaoService.buscarMedia(empresa))
+                .porcentagensFinaisIniciais(negociacaoService.buscarPorcentagensFinaisIniciais(empresa))
+                .historicoInteracoes(buscarInteracoes(empresa))
+                .build();
 
     }
 
     public BigDecimal calcularEconomiaReal(Negociacao negociacao, Reajuste reajuste) {
+
+        if (negociacao.getStatus() == EnumStatusNegociacao.EM_ANDAMENTO){
+            return null;
+        }
 
         return BigDecimal.valueOf(
                 calcularReajuste(
@@ -111,6 +138,50 @@ public class ReajusteService {
         return BigDecimal.valueOf(
                 negociacao.getPorcentagemPropostaOperadora().doubleValue()
                         - negociacao.getPorcentagemFechada().doubleValue());
+
+    }
+
+    public List<HistoricoInteracaoDTO> buscarInteracoes(Empresa empresa) {
+
+        List<Reajuste> reajustes = reajusteRepository.findAllByEmpresa(empresa);
+        List<Negociacao> negociacoes = new ArrayList<>();
+
+        for (Reajuste reajuste : reajustes) {
+
+            Negociacao negociacao = negociacaoRepository.findAllByReajuste(reajuste);
+            negociacoes.add(negociacao);
+
+        }
+
+        List<HistoricoInteracaoDTO> interacoes = new ArrayList<>();
+
+        for (Negociacao negociacao : negociacoes){
+
+            List<Interacao> interacoesObtidas = interacaoRepository.findAllByNegociacao(negociacao);
+
+            for (Interacao interacao : interacoesObtidas){
+
+                HistoricoInteracaoDTO interacaoDTO = HistoricoInteracaoDTO.builder()
+                        .id(interacao.getIdInteracao())
+                        .ano(negociacao.getReajuste().getAnoReferencia())
+                        .tipo(interacao.getTipoInteracao())
+                        .porcentagemProposta(interacao.getPorcentagemProposta())
+                        .valorAtual(negociacao.getValorInicial())
+                        .vlMensalResultante(calcularReajuste(
+                                negociacao.getValorInicial(),
+                                interacao.getPorcentagemProposta()
+                        ))
+                        .dtInteracao(interacao.getDtInteracao())
+                        .observacao(interacao.getObservacao())
+                        .isAceita(interacao.getAceita())
+                        .build();
+
+                interacoes.add(interacaoDTO);
+
+            }
+        }
+
+        return interacoes;
 
     }
 }

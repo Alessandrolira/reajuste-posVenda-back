@@ -1,13 +1,13 @@
 package reajuste.reajuste_back.service;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import reajuste.reajuste_back.dtos.empresas.*;
+import reajuste.reajuste_back.dtos.reajuste.UltimoReajusteDTO;
 import reajuste.reajuste_back.entity.*;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
+import reajuste.reajuste_back.enums.negociacao.EnumStatusNegociacao;
 import reajuste.reajuste_back.repository.AnalistaRepository;
 import reajuste.reajuste_back.repository.EmpresaRepository;
 import reajuste.reajuste_back.repository.NegociacaoRepository;
@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -117,10 +118,14 @@ public class EmpresaService {
             }
             contagemElementos += 1;
             soma += (negociacao.getPorcentagemPropostaOperadora().doubleValue() - negociacao.getPorcentagemFechada().doubleValue());
-
         }
 
-        return BigDecimal.valueOf(soma/contagemElementos);
+        if (contagemElementos == 0){
+            return BigDecimal.valueOf(0);
+        } else {
+            return BigDecimal.valueOf(soma/contagemElementos);
+        }
+
 
 
     }
@@ -149,122 +154,72 @@ public class EmpresaService {
 
     }
 
-    public List<CardsEmpresaDTO> gerarCardsEmpresas() {
-
-        List<Empresa> empresas = empresaRepository.findAll();
-        List<CardsEmpresaDTO> empresasBuscadas = new ArrayList<>();
-
-        for (Empresa empresa : empresas){
-
-            if(reajusteService.buscarUltimoReajuste(empresa) == null){
-                CardsEmpresaDTO card = CardsEmpresaDTO.builder()
-                        .idEmpresa(empresa.getIdEmpresa())
-                        .nomeEmpresa(empresa.getNome())
-                        .operadora(empresa.getOperadora())
-                        .modalidade(empresa.getModalidade())
-                        .statusRenovacao(empresa.getStatusRenovacao())
-                        .aniversario(empresa.getDtAniversario())
-                        .ultimoReajuste(0)
-                        .economiaTotal(BigDecimal.valueOf(0))
-                        .porcentagemUltimoReajuste(BigDecimal.valueOf(0))
-                        .build();
-
-                empresasBuscadas.add(card);
-
-                continue;
-            }
-
-            Reajuste ultimoReajuste = reajusteService.buscarUltimoReajuste(empresa);
-            Negociacao ultimaNegociacao = negociacaoService.buscarUltimaNegociacao(ultimoReajuste);
-
-            CardsEmpresaDTO card = CardsEmpresaDTO.builder()
-                    .idEmpresa(empresa.getIdEmpresa())
-                    .nomeEmpresa(empresa.getNome())
-                    .operadora(empresa.getOperadora())
-                    .modalidade(empresa.getModalidade())
-                    .statusRenovacao(empresa.getStatusRenovacao())
-                    .aniversario(empresa.getDtAniversario())
-                    .ultimoReajuste(ultimoReajuste.getAnoReferencia())
-                    .economiaTotal(BigDecimal.valueOf(ultimaNegociacao.getValorComPrimeiraPorcentagem().doubleValue() - ultimaNegociacao.getValorFinal().doubleValue()))
-                    .porcentagemUltimoReajuste(ultimaNegociacao.getPorcentagemFechada())
-                    .build();
-
-            empresasBuscadas.add(card);
-
-        }
-
-        return empresasBuscadas;
-
-    }
+//    public List<CardsEmpresaDTO> gerarCardsEmpresas() {
+//
+//        List<Empresa> empresas = empresaRepository.findAll();
+//        List<CardsEmpresaDTO> empresasBuscadas = new ArrayList<>();
+//
+//        for (Empresa empresa : empresas){
+//
+//            if(reajusteService.buscarUltimoReajusteAprovado(empresa.getIdEmpresa()) == null){
+//                CardsEmpresaDTO card = CardsEmpresaDTO.builder()
+//                        .idEmpresa(empresa.getIdEmpresa())
+//                        .nomeEmpresa(empresa.getNome())
+//                        .operadora(empresa.getOperadora())
+//                        .modalidade(empresa.getModalidade())
+//                        .statusRenovacao(empresa.getStatusRenovacao())
+//                        .aniversario(empresa.getDtAniversario())
+//                        .ultimoReajuste(0)
+//                        .economiaTotal(BigDecimal.valueOf(0))
+//                        .porcentagemUltimoReajuste(BigDecimal.valueOf(0))
+//                        .build();
+//
+//                empresasBuscadas.add(card);
+//
+//                continue;
+//            }
+//
+//            UltimoReajusteDTO ultimoReajuste = reajusteService.buscarUltimoReajusteAprovado(empresa.getIdEmpresa());
+//            Negociacao ultimaNegociacao = negociacaoService.buscarUltimaNegociacao(ultimoReajuste);
+//
+//            BigDecimal economiaTotal = BigDecimal.valueOf(0);
+//            if (ultimaNegociacao.getValorFinal() != null) {
+//                economiaTotal = BigDecimal.valueOf(ultimaNegociacao.getValorComPrimeiraPorcentagem().doubleValue() - ultimaNegociacao.getValorFinal().doubleValue());
+//            }
+//
+//            System.out.println(ultimaNegociacao.getStatus());
+//
+//            CardsEmpresaDTO card = CardsEmpresaDTO.builder()
+//                .idEmpresa(empresa.getIdEmpresa())
+//                .nomeEmpresa(empresa.getNome())
+//                .operadora(empresa.getOperadora())
+//                .statusNegociacao(ultimaNegociacao.getStatus())
+//                .modalidade(empresa.getModalidade())
+//                .statusRenovacao(empresa.getStatusRenovacao())
+//                .aniversario(empresa.getDtAniversario())
+//                .ultimoReajuste(ultimoReajuste.getAnoReferencia())
+//                .economiaTotal(economiaTotal)
+//                .porcentagemUltimoReajuste(ultimaNegociacao.getPorcentagemFechada())
+//                .build();
+//
+//
+//            empresasBuscadas.add(card);
+//
+//        }
+//
+//        return empresasBuscadas;
+//
+//    }
 
     public EmpresaDTO buscarEmpresa(Integer id) {
 
-        Empresa empresa = empresaRepository.findById(id).orElseThrow();
-
-        Reajuste ultimoReajuste = null;
-        Negociacao ultimaNegociacao = null;
-        BigDecimal reajusteReal = BigDecimal.valueOf(0);
-        BigDecimal diferencaPercentual = BigDecimal.valueOf(0);
-        BigDecimal ultimaNegociacaoPorcentagemOperadora = BigDecimal.valueOf(0);
-        BigDecimal ultimaNegociacaoPorcentagemFechada = BigDecimal.valueOf(0);
-        BigDecimal valorUltimaFatura = BigDecimal.valueOf(0);
-        BigDecimal ultimaNegociacaoValorFechado = BigDecimal.valueOf(0);
-
-        if (reajusteRepository.existsByEmpresa(empresa)){
-            ultimoReajuste = reajusteService.buscarUltimoReajuste(empresa);
-            if (negociacaoRepository.existsByReajuste(ultimoReajuste)){
-                ultimaNegociacao = negociacaoService.buscarUltimaNegociacao(ultimoReajuste);
-                reajusteReal = reajusteService.calcularEconomiaReal(ultimaNegociacao, ultimoReajuste);
-                diferencaPercentual = reajusteService.calcularDiferencaPercentual(ultimaNegociacao);
-                ultimaNegociacaoPorcentagemOperadora = ultimaNegociacao.getPorcentagemPropostaOperadora();
-                ultimaNegociacaoPorcentagemFechada = ultimaNegociacao.getPorcentagemFechada();
-                valorUltimaFatura = ultimoReajuste.getValorUltimaFatura();
-                ultimaNegociacaoValorFechado = ultimaNegociacao.getValorFinal();
-            }
-        }
-
-        List<Negociacao> negociacoes = new ArrayList<>();;
-        if(!negociacaoRepository.findByReajusteEmpresa(empresa).isEmpty()){
-            negociacoes = negociacaoRepository.findByReajusteEmpresa(empresa);
-        }
-
-
-        List<PorcentagensFinaisIniciaisDTO> porcentagensFinaisIniciais = new ArrayList<>();
-        List<LinhaTempoDTO> linhaTempoCompleta = new ArrayList<>();
-
-        for (Negociacao negociacao : negociacoes){
-
-            PorcentagensFinaisIniciaisDTO porcentagemInicialFinal = PorcentagensFinaisIniciaisDTO.builder()
-                    .operadora(negociacao.getPorcentagemPropostaOperadora())
-                    .corretora(negociacao.getPorcentagemFechada())
-                    .motivoEncerramento(negociacao.getMotivoEncerramento())
-                    .build();
-
-            porcentagensFinaisIniciais.add(porcentagemInicialFinal);
-
-            LinhaTempoDTO linhaTempo = LinhaTempoDTO.builder()
-                    .ano(negociacao.getReajuste().getAnoReferencia())
-                    .economiaPorcentagem(BigDecimal.valueOf(negociacao.getPorcentagemPropostaOperadora().doubleValue() - negociacao.getPorcentagemFechada().doubleValue()))
-                    .porcentagemFechada(negociacao.getPorcentagemFechada())
-                    .build();
-
-            linhaTempoCompleta.add(linhaTempo);
-        }
-
-        List<HistoricoInteracaoDTO> historicoInteracao = interacaoService.buscarInteracoes(empresa);
+        Empresa empresaEncontrada = empresaRepository.findById(id).orElseThrow();
 
         return EmpresaDTO.builder()
-                .nomeEmpresa(empresa.getNome())
-                .statusRenovacao(empresa.getStatusRenovacao())
-                .ultimoReajusteOferecido(ultimaNegociacaoPorcentagemOperadora)
-                .ultimoReajusteFechado(ultimaNegociacaoPorcentagemFechada)
-                .economiaPercentual(diferencaPercentual)
-                .economiaReal(reajusteReal)
-                .valorUltimaFatura(valorUltimaFatura)
-                .valorFechado(ultimaNegociacaoValorFechado)
-                .porcentagensFinaisIniciais(porcentagensFinaisIniciais)
-                .linhaTempo(linhaTempoCompleta)
-                .historicoInteracao(historicoInteracao)
+                .nomeEmpresa(empresaEncontrada.getNome())
+                .statusRenovacao(empresaEncontrada.getStatusRenovacao())
+                .operadora(empresaEncontrada.getOperadora())
+                .modalidade(empresaEncontrada.getModalidade())
                 .build();
 
     }

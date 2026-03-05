@@ -71,14 +71,14 @@ public class EmpresasController {
         }
     }
 
-    @GetMapping("/buscarCardsEmpresa")
-    public ResponseEntity<List<CardsEmpresaDTO>> buscarCardsEmpresa(){
-
-        List<CardsEmpresaDTO> cardsEmpresas = empresaService.gerarCardsEmpresas();
-
-        return ResponseEntity.ok(cardsEmpresas);
-
-    }
+//    @GetMapping("/buscarCardsEmpresa")
+//    public ResponseEntity<List<CardsEmpresaDTO>> buscarCardsEmpresa(){
+//
+//        List<CardsEmpresaDTO> cardsEmpresas = empresaService.gerarCardsEmpresas();
+//
+//        return ResponseEntity.ok(cardsEmpresas);
+//
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<EmpresaDTO> buscarEmpresa(@PathVariable Integer id){

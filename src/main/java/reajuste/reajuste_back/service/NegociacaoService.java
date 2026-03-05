@@ -4,9 +4,11 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.springframework.stereotype.Service;
+import reajuste.reajuste_back.dtos.empresas.PorcentagensFinaisIniciaisDTO;
 import reajuste.reajuste_back.dtos.negociacao.NegociacaoResponseDTO;
 import reajuste.reajuste_back.dtos.negociacao.RequestNegociacaoAprovadaDTO;
 import reajuste.reajuste_back.dtos.negociacao.ResponseNegociacaoAprovadaDTO;
+import reajuste.reajuste_back.dtos.reajuste.UltimoReajusteDTO;
 import reajuste.reajuste_back.entity.Empresa;
 import reajuste.reajuste_back.entity.Negociacao;
 import reajuste.reajuste_back.entity.Reajuste;
@@ -16,7 +18,10 @@ import reajuste.reajuste_back.repository.EmpresaRepository;
 import reajuste.reajuste_back.repository.NegociacaoRepository;
 import reajuste.reajuste_back.repository.ReajusteRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +29,7 @@ public class NegociacaoService {
 
     private final NegociacaoRepository negociacaoRepository;
     private final EmpresaRepository empresaRepository;
+    private final ReajusteRepository reajusteRepository;
 
     public Negociacao criarNegociacao(Reajuste reajuste) {
 
@@ -61,14 +67,56 @@ public class NegociacaoService {
 
     }
 
-    public Negociacao buscarUltimaNegociacao(Reajuste ultimoReajuste) {
+    public UltimoReajusteDTO buscarUltimaNegociacao(Reajuste ultimoReajuste) {
 
         if (negociacaoRepository.findByReajuste_IdReajuste(ultimoReajuste.getIdReajuste()) == null){
             return null;
-        } else {
-            return negociacaoRepository.findByReajuste_IdReajuste(ultimoReajuste.getIdReajuste());
         }
 
+        return null;
+
+    }
+
+    public BigDecimal buscarMedia(Empresa empresa) {
+
+        List<Reajuste> reajustes = reajusteRepository.findAllByEmpresa(empresa);
+        double soma = 0;
+        int qtdItens = 0;
+
+        for (Reajuste reajuste : reajustes){
+
+            Negociacao negociacao = negociacaoRepository.findAllByReajuste(reajuste);
+
+            soma += negociacao.getPorcentagemPropostaOperadora().doubleValue() - negociacao.getPorcentagemFechada().doubleValue();
+            qtdItens += 1;
+
+        }
+
+        return BigDecimal.valueOf(soma/qtdItens);
+
+
+    }
+
+    public List<PorcentagensFinaisIniciaisDTO> buscarPorcentagensFinaisIniciais(Empresa empresa) {
+
+        List<Reajuste> reajustes = reajusteRepository.findAllByEmpresa(empresa);
+        List<PorcentagensFinaisIniciaisDTO> response = new ArrayList<>();
+
+        for (Reajuste reajuste : reajustes){
+
+            Negociacao negociacao = negociacaoRepository.findAllByReajuste(reajuste);
+
+            PorcentagensFinaisIniciaisDTO porcentagensBuscadas = PorcentagensFinaisIniciaisDTO.builder()
+                    .ano(reajuste.getAnoReferencia())
+                    .operadora(negociacao.getPorcentagemPropostaOperadora())
+                    .corretora(negociacao.getPorcentagemFechada())
+                    .build();
+
+            response.add(porcentagensBuscadas);
+
+        }
+
+        return response;
 
 
     }

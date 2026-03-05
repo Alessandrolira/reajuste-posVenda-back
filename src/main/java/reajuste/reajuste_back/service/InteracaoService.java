@@ -107,48 +107,4 @@ public class InteracaoService {
 
 
     }
-
-    public List<HistoricoInteracaoDTO> buscarInteracoes(Empresa empresa) {
-
-        List<Reajuste> reajustes = reajusteRepository.findAllByEmpresa(empresa);
-        List<Negociacao> negociacoes = new ArrayList<>();
-
-        for (Reajuste reajuste : reajustes) {
-
-            Negociacao negociacao = negociacaoRepository.findAllByReajuste(reajuste);
-            negociacoes.add(negociacao);
-
-        }
-
-        List<HistoricoInteracaoDTO> interacoes = new ArrayList<>();
-
-        for (Negociacao negociacao : negociacoes){
-
-            List<Interacao> interacoesObtidas = interacaoRepository.findAllByNegociacao(negociacao);
-
-            for (Interacao interacao : interacoesObtidas){
-
-                HistoricoInteracaoDTO interacaoDTO = HistoricoInteracaoDTO.builder()
-                        .id(interacao.getIdInteracao())
-                        .ano(negociacao.getReajuste().getAnoReferencia())
-                        .tipo(interacao.getTipoInteracao())
-                        .porcentagemProposta(interacao.getPorcentagemProposta())
-                        .valorAtual(negociacao.getValorInicial())
-                        .vlMensalResultante(reajusteService.calcularReajuste(
-                                negociacao.getValorInicial(),
-                                interacao.getPorcentagemProposta()
-                        ))
-                        .dtInteracao(interacao.getDtInteracao())
-                        .observacao(interacao.getObservacao())
-                        .isAceita(interacao.getAceita())
-                        .build();
-
-                interacoes.add(interacaoDTO);
-
-            }
-        }
-
-        return interacoes;
-
-    }
 }
