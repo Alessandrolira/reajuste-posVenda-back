@@ -7,6 +7,7 @@ import reajuste.reajuste_back.dtos.empresas.HistoricoInteracaoDTO;
 import reajuste.reajuste_back.dtos.interacao.RequestInteracaoAprovadaDTO;
 import reajuste.reajuste_back.dtos.interacao.RequestInteracaoDTO;
 import reajuste.reajuste_back.dtos.interacao.ResponseInteracaoDTO;
+import reajuste.reajuste_back.dtos.negociacao.NegociacaoEmAbertoDTO;
 import reajuste.reajuste_back.entity.Empresa;
 import reajuste.reajuste_back.entity.Interacao;
 import reajuste.reajuste_back.entity.Negociacao;
@@ -26,38 +27,22 @@ import java.util.List;
 public class InteracaoService {
 
     private final InteracaoRepository interacaoRepository;
-    private final NegociacaoService negociacaoService;
     private final ReajusteRepository reajusteRepository;
-    private final ReajusteService reajusteService;
     private final NegociacaoRepository negociacaoRepository;
+    private final UtilsService utilsService;
 
-    public ResponseInteracaoDTO criarInteracao(@Valid RequestInteracaoDTO body) throws Exception {
+    public ResponseInteracaoDTO criarInteracao(@Valid RequestInteracaoDTO body, Integer idReajuste) throws Exception {
 
-        Negociacao negociacaoCriada = null;
-        try {
-            Reajuste reajusteEncontrado = reajusteRepository.findById(body.idReajuste()).orElseThrow();
-            Empresa empresa = reajusteEncontrado.getEmpresa();
-            Boolean existeNegociacao = negociacaoRepository.existsByReajuste_IdReajuste(reajusteEncontrado.getIdReajuste());
-
-            if (empresa.getStatusRenovacao() == EnumStatusRenovacao.EM_NEGOCIACAO && existeNegociacao) {
-                negociacaoCriada = negociacaoRepository.findByReajuste_IdReajuste(reajusteEncontrado.getIdReajuste());
-            } else {
-                negociacaoCriada = negociacaoService.criarNegociacao(reajusteEncontrado);
-                empresa.setStatusRenovacao(EnumStatusRenovacao.EM_NEGOCIACAO);
-            }
-
-        } catch (Exception e){
-            throw new Exception("Erro ao criar a negociacao " + e );
-        }
+        Reajuste reajuste = reajusteRepository.findById(idReajuste).orElseThrow();
+        Negociacao negociacao = negociacaoRepository.findAllByReajuste(reajuste);
 
         Interacao interacao = new Interacao();
 
-        interacao.setNegociacao(negociacaoCriada);
+        interacao.setNegociacao(negociacao);
         interacao.setTipoInteracao(body.solicitante());
         interacao.setPorcentagemProposta(body.proposta());
 
-        Reajuste reajuste = reajusteRepository.findById(negociacaoCriada.getReajuste().getIdReajuste()).orElseThrow();
-        BigDecimal valorResultante = reajusteService.calcularReajuste(reajuste.getValorUltimaFatura(), body.proposta());
+        BigDecimal valorResultante = utilsService.calcularReajuste(reajuste.getValorUltimaFatura(), body.proposta());
 
         interacao.setValorMensalResultante(valorResultante);
         interacao.setObservacao(body.observacoes());
@@ -92,7 +77,7 @@ public class InteracaoService {
             negociacao.setDtFim(body.dataAceite());
             negociacao.setMotivoEncerramento(body.motivoEncerramento());
 
-            BigDecimal ultimoValorAceitado = reajusteService.calcularReajuste(negociacao.getReajuste().getValorUltimaFatura() ,interacao.getPorcentagemProposta());
+            BigDecimal ultimoValorAceitado = utilsService.calcularReajuste(negociacao.getReajuste().getValorUltimaFatura() ,interacao.getPorcentagemProposta());
             negociacao.setPorcentagemFechada(interacao.getPorcentagemProposta());
             negociacao.setValorFinal(ultimoValorAceitado);
             negociacao.setValorComPrimeiraPorcentagem(negociacao.getReajuste().getVlComPrimeiraPorcentagem());
@@ -105,6 +90,36 @@ public class InteracaoService {
                 .isAceita(interacao.getAceita())
                 .build();
 
+
+    }
+
+    public List<HistoricoInteracaoDTO> buscarInteracao(NegociacaoEmAbertoDTO negociacaoEnviada) {
+
+        Reajuste reajuste = reajusteRepository.findById(negociacaoEnviada.idReajuse()).orElseThrow();
+        Negociacao negociacao = negociacaoRepository.findAllByReajuste(reajuste);
+
+        List<Interacao> interacoesEncontradas = interacaoRepository.findAllByNegociacao(negociacao);
+        List<HistoricoInteracaoDTO> interacoes = new ArrayList<>();
+
+        for (Interacao interacao : interacoesEncontradas){
+
+            HistoricoInteracaoDTO historicoInteracao = HistoricoInteracaoDTO.builder()
+                    .id(interacao.getIdInteracao())
+                    .ano(negociacao.getReajuste().getAnoReferencia())
+                    .tipo(interacao.getTipoInteracao())
+                    .porcentagemProposta(interacao.getPorcentagemProposta())
+                    .valorAtual(negociacao.getValorInicial())
+                    .vlMensalResultante(utilsService.calcularReajuste(negociacao.getValorInicial(), interacao.getPorcentagemProposta()))
+                    .dtInteracao(interacao.getDtInteracao())
+                    .observacao(interacao.getObservacao())
+                    .isAceita(interacao.getAceita())
+                    .build();
+
+            interacoes.add(historicoInteracao);
+
+        }
+
+        return interacoes;
 
     }
 }

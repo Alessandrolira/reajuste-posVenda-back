@@ -4,12 +4,15 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.springframework.stereotype.Service;
+import reajuste.reajuste_back.dtos.empresas.HistoricoInteracaoDTO;
 import reajuste.reajuste_back.dtos.empresas.PorcentagensFinaisIniciaisDTO;
+import reajuste.reajuste_back.dtos.negociacao.NegociacaoEmAbertoDTO;
 import reajuste.reajuste_back.dtos.negociacao.NegociacaoResponseDTO;
 import reajuste.reajuste_back.dtos.negociacao.RequestNegociacaoAprovadaDTO;
 import reajuste.reajuste_back.dtos.negociacao.ResponseNegociacaoAprovadaDTO;
 import reajuste.reajuste_back.dtos.reajuste.UltimoReajusteDTO;
 import reajuste.reajuste_back.entity.Empresa;
+import reajuste.reajuste_back.entity.Interacao;
 import reajuste.reajuste_back.entity.Negociacao;
 import reajuste.reajuste_back.entity.Reajuste;
 import reajuste.reajuste_back.enums.empresa.EnumStatusRenovacao;
@@ -30,6 +33,8 @@ public class NegociacaoService {
     private final NegociacaoRepository negociacaoRepository;
     private final EmpresaRepository empresaRepository;
     private final ReajusteRepository reajusteRepository;
+    private final UtilsService utilsService;
+    private final InteracaoService interacaoService;
 
     public Negociacao criarNegociacao(Reajuste reajuste) {
 
@@ -120,4 +125,54 @@ public class NegociacaoService {
 
 
     }
+
+    public NegociacaoEmAbertoDTO buscarNegociacaoEmAberto(Integer id) {
+
+        Empresa empresa = empresaRepository.findById(id).orElseThrow();
+        Reajuste reajusteComNegociacaoEmAberto = reajusteRepository.findTopByEmpresaAndNegociacaoStatusNotOrderByAnoReferenciaDesc(empresa, EnumStatusNegociacao.FINALIZADA);
+
+        if (reajusteComNegociacaoEmAberto == null){
+            return null;
+        } else {
+            BigDecimal valorAposReajuste =
+                    utilsService.calcularReajuste(
+                            reajusteComNegociacaoEmAberto.getValorUltimaFatura(),
+                            reajusteComNegociacaoEmAberto.getPorcentagemOperadora()
+
+            );
+
+            List<HistoricoInteracaoDTO> iniciazalizarHistorico = new ArrayList<>();
+
+            return NegociacaoEmAbertoDTO.builder()
+                    .idReajuse(reajusteComNegociacaoEmAberto.getIdReajuste())
+                    .statusNegociacao(reajusteComNegociacaoEmAberto.getNegociacao().getStatus())
+                    .dtAbertura(reajusteComNegociacaoEmAberto.getDtEnvio())
+                    .propostaInicial(reajusteComNegociacaoEmAberto.getNegociacao().getPorcentagemPropostaOperadora())
+                    .valorAtual(reajusteComNegociacaoEmAberto.getValorUltimaFatura())
+                    .valorAposReajuste(valorAposReajuste)
+                    .aumentoDe(BigDecimal.valueOf(valorAposReajuste.doubleValue() - reajusteComNegociacaoEmAberto.getValorUltimaFatura().doubleValue()))
+                    .observacaoReajuste("")
+                    .historicoInteracao(iniciazalizarHistorico)
+                    .build();
+        }
+    }
+
+    public NegociacaoEmAbertoDTO adicionarInteracoes(NegociacaoEmAbertoDTO negociacao, List<HistoricoInteracaoDTO> interacoes){
+
+        System.out.println(interacoes);
+
+        if (interacoes.isEmpty()){
+            return negociacao;
+        }else{
+            for (HistoricoInteracaoDTO interacao : interacoes){
+                System.out.println(interacao);
+                negociacao.historicoInteracao().add(interacao);
+            }
+
+            return negociacao;
+        }
+
+
+
+    };
 }

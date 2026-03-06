@@ -23,7 +23,7 @@ public class IntercaoController {
     @PostMapping
     public ResponseEntity<ResponseInteracaoDTO> create(@Valid @RequestBody RequestInteracaoDTO body) throws Exception {
 
-        ResponseInteracaoDTO response = interacaoService.criarInteracao(body);
+        ResponseInteracaoDTO response = interacaoService.criarInteracao(body, body.idReajuste());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

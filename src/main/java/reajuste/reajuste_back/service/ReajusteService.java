@@ -34,6 +34,7 @@ public class ReajusteService {
     private final NegociacaoService negociacaoService;
     private final NegociacaoRepository negociacaoRepository;
     private final InteracaoRepository interacaoRepository;
+    private final UtilsService utilsService;
 
     public ReajusteResponseDTO criarReajuste(@Valid ReajusteCreateDTO body) throws Exception {
 
@@ -43,7 +44,7 @@ public class ReajusteService {
             throw new RuntimeException("Já existe reajuste para essa empresa nesse ano");
         }
 
-        BigDecimal calculo = calcularReajuste(body.valorUltimaFatura(), body.porcentagemOperadora());
+        BigDecimal calculo = utilsService.calcularReajuste(body.valorUltimaFatura(), body.porcentagemOperadora());
 
         Reajuste reajuste = new Reajuste();
 
@@ -74,19 +75,6 @@ public class ReajusteService {
 
     }
 
-    public BigDecimal calcularReajuste(@NotBlank BigDecimal valorFatura, @NotNull BigDecimal porcentagem) {
-
-        return valorFatura
-                .multiply(
-                        BigDecimal.ONE.add(
-                                porcentagem.divide(
-                                        BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
-                        )
-                )
-                .setScale(2, RoundingMode.HALF_UP);
-
-    }
-
     public UltimoReajusteDTO buscarUltimoReajusteAprovado(Integer idEmpresa) {
 
 
@@ -106,9 +94,11 @@ public class ReajusteService {
                 .anoUltimoReajuste(reajuste.getAnoReferencia())
                 .porcentagemOferecida(negociacaoVinculada.getPorcentagemPropostaOperadora())
                 .porcentagemFechada(negociacaoVinculada.getPorcentagemFechada())
-                .economiaPercentual(calcularDiferencaPercentual(negociacaoVinculada))
-                .economiaReal(calcularEconomiaReal(negociacaoVinculada, reajuste))
+                .economiaPercentual(utilsService.calcularDiferencaPercentual(negociacaoVinculada))
+                .economiaReal(utilsService.calcularEconomiaReal(negociacaoVinculada, reajuste))
                 .valorPrimeiraFatura(negociacaoVinculada.getValorInicial())
+                .valorComPrimeiraPorcentagem(negociacaoVinculada.getValorComPrimeiraPorcentagem())
+                .valorComPorcentagemFechada(negociacaoVinculada.getValorFinal())
                 .mediaReducao(negociacaoService.buscarMedia(empresa))
                 .porcentagensFinaisIniciais(negociacaoService.buscarPorcentagensFinaisIniciais(empresa))
                 .historicoInteracoes(buscarInteracoes(empresa))
@@ -116,30 +106,6 @@ public class ReajusteService {
 
     }
 
-    public BigDecimal calcularEconomiaReal(Negociacao negociacao, Reajuste reajuste) {
-
-        if (negociacao.getStatus() == EnumStatusNegociacao.EM_ANDAMENTO){
-            return null;
-        }
-
-        return BigDecimal.valueOf(
-                calcularReajuste(
-                        reajuste.getValorUltimaFatura(),
-                        negociacao.getPorcentagemPropostaOperadora()
-                ).doubleValue() -  calcularReajuste(
-                        reajuste.getValorUltimaFatura(),
-                        negociacao.getPorcentagemFechada()
-                ).doubleValue());
-
-    }
-
-    public BigDecimal calcularDiferencaPercentual(Negociacao negociacao) {
-
-        return BigDecimal.valueOf(
-                negociacao.getPorcentagemPropostaOperadora().doubleValue()
-                        - negociacao.getPorcentagemFechada().doubleValue());
-
-    }
 
     public List<HistoricoInteracaoDTO> buscarInteracoes(Empresa empresa) {
 
@@ -167,7 +133,7 @@ public class ReajusteService {
                         .tipo(interacao.getTipoInteracao())
                         .porcentagemProposta(interacao.getPorcentagemProposta())
                         .valorAtual(negociacao.getValorInicial())
-                        .vlMensalResultante(calcularReajuste(
+                        .vlMensalResultante(utilsService.calcularReajuste(
                                 negociacao.getValorInicial(),
                                 interacao.getPorcentagemProposta()
                         ))

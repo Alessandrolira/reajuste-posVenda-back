@@ -21,6 +21,8 @@ public record UltimoReajusteDTO(
         BigDecimal economiaReal,
         BigDecimal valorPrimeiraFatura,
         BigDecimal mediaReducao,
+        BigDecimal valorComPrimeiraPorcentagem,
+        BigDecimal valorComPorcentagemFechada,
         List<PorcentagensFinaisIniciaisDTO> porcentagensFinaisIniciais,
         List<HistoricoInteracaoDTO> historicoInteracoes
 

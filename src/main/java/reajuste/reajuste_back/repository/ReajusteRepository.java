@@ -12,14 +12,13 @@ public interface ReajusteRepository extends JpaRepository<Reajuste, Integer> {
 
     boolean existsByEmpresaAndAnoReferencia(Empresa empresaEncontrada, @NotBlank Integer s);
 
-    Reajuste findTopByEmpresaOrderByAnoReferenciaDesc(Empresa empresa);
-
     List<Reajuste> findAllByEmpresa(Empresa empresa);
 
-    boolean existsByEmpresa(Empresa empresa);
 
     Reajuste findTopByEmpresaAndNegociacaoStatusOrderByAnoReferenciaDesc(
             Empresa empresa,
             EnumStatusNegociacao status
     );
+
+    Reajuste findTopByEmpresaAndNegociacaoStatusNotOrderByAnoReferenciaDesc(Empresa empresa, EnumStatusNegociacao enumStatusNegociacao);
 }

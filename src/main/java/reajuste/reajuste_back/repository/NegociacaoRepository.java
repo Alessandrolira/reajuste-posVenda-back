@@ -19,5 +19,5 @@ public interface NegociacaoRepository extends JpaRepository<Negociacao, Integer>
 
     boolean existsByReajuste(Reajuste ultimoReajuste);
 
-    List<Negociacao> findByReajusteEmpresa(Empresa empresa);
+    Negociacao findByReajusteEmpresa(Empresa empresa);
 }
